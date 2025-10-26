@@ -1,6 +1,9 @@
 from fastapi import FastAPI
+from app.routers import sensors
 
-app = FastAPI()
+app = FastAPI(title="Security System")
+
+app.include_router(sensors.router)
 
 @app.get("/")
 async def home():

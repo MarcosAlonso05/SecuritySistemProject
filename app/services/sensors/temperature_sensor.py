@@ -1,11 +1,16 @@
-from typing import Dict, Any
 import asyncio
+import time
+from typing import Dict, Any
 from datetime import datetime
+from app.services.monitoring.metrics import EVENT_COUNTER, EVENT_LATENCY
 
 class TemperatureSensor:
 
     async def process_event(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        await asyncio.sleep(0)
+        
+        start_time = time.time()
+        
+        await asyncio.sleep(0.5)
 
         temp = data.get("temperature")
         unit = data.get("unit", "C")
@@ -49,5 +54,8 @@ class TemperatureSensor:
                 "message": f"Temperatura alta cercana al umbral: {temp_c:.1f}°C (sensor {sensor_id})",
                 "metadata": {"temperature_c": temp_c, "sensor_id": sensor_id, "timestamp": ts}
             }
+            
+        EVENT_COUNTER.labels(sensor_type="temperature").inc()
+        EVENT_LATENCY.labels(sensor_type="temperature").observe(time.time() - start_time)
 
         return {"alert": False, "message": "Temperatura normal", "metadata": {"temperature_c": temp_c, "sensor_id": sensor_id}}

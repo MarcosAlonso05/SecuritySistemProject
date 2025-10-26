@@ -7,3 +7,5 @@ SENSOR_REGISTRY = {
     "temperature": TemperatureSensor(),
     "access": AccessSensor(),
 }
+
+__all__ = ["SENSOR_REGISTRY"]

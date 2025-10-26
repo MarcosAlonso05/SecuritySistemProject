@@ -1,11 +1,16 @@
-from typing import Dict, Any, Iterable
 import asyncio
+import time
+from typing import Dict, Any, Iterable
 from datetime import datetime
+from app.services.monitoring.metrics import EVENT_COUNTER, EVENT_LATENCY
 
 class AccessSensor:
 
     async def process_event(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        await asyncio.sleep(0)
+        
+        start_time = time.time()
+        
+        await asyncio.sleep(0.5)
 
         badge = data.get("badge_id")
         explicit_unauth = data.get("unauthorized_access")
@@ -35,6 +40,9 @@ class AccessSensor:
                 "message": f"Badge desconocido o no autorizado: {badge} en puerta {door}",
                 "metadata": {"badge_id": badge, "door": door, "timestamp": ts}
             }
+            
+        EVENT_COUNTER.labels(sensor_type="access").inc()
+        EVENT_LATENCY.labels(sensor_type="access").observe(time.time() - start_time)
 
         return {
             "alert": False,
