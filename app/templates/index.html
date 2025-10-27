@@ -1,0 +1,15 @@
+<h2>Bienvenido {{ user.username }}</h2>
+<p>Rol: {{ user.role }}</p>
+
+{% if user.role == 'admin' %}
+    <a href="/sensor/motion">Simular movimiento</a><br>
+    <a href="/sensor/access">Simular acceso</a><br>
+    <a href="/sensor/temperature">Simular temperatura</a><br>
+    <a href="/dashboard/html">Dashboard</a><br>
+{% elif user.role == 'operator' %}
+    <a href="/dashboard/html">Dashboard</a><br>
+{% elif user.role == 'viewer' %}
+    <a href="/dashboard/html">Dashboard</a><br>
+{% endif %}
+
+<a href="/logout">Cerrar sesión</a>

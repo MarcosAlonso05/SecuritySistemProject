@@ -1,0 +1,19 @@
+<h1>Bienvenido, {{ username }}!</h1>
+<p>Rol: {{ role }}</p>
+
+{% if role == "admin" %}
+<ul>
+    <li><a href="/sensor">Simulación de sensores</a></li>
+    <li><a href="/dashboard">Dashboard</a></li>
+    <li><a href="/metrics">Métricas</a></li>
+</ul>
+{% elif role == "operator" %}
+<ul>
+    <li><a href="/dashboard">Dashboard</a></li>
+    <li><a href="/metrics">Métricas</a></li>
+</ul>
+{% else %}
+<ul>
+    <li><a href="/dashboard">Dashboard</a></li>
+</ul>
+{% endif %}

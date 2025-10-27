@@ -1,0 +1,12 @@
+<form method="post" action="/register">
+    <input name="username" placeholder="Usuario" required>
+    <input name="password" type="password" placeholder="Contraseña" required>
+    <select name="role">
+        <option value="viewer">Viewer</option>
+        <option value="operator">Operator</option>
+        <option value="admin">Admin</option>
+    </select>
+    <button type="submit">Registrar</button>
+    {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+    <a href="/login">Login</a>
+</form>

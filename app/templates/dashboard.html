@@ -1,0 +1,14 @@
+<h2>Últimos eventos</h2>
+<table border="1">
+    <tr><th>Sensor</th><th>Mensaje</th><th>Alerta</th><th>Severidad</th></tr>
+    {% for type, events in last_events.items() %}
+    {% for e in events %}
+        <tr>
+            <td>{{ type }}</td>
+            <td>{{ e.message }}</td>
+            <td>{{ e.alert }}</td>
+            <td>{{ e.get("severity", "-") }}</td>
+        </tr>
+    {% endfor %}
+    {% endfor %}
+</table>
