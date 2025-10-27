@@ -1,5 +1,9 @@
 import asyncio
 from typing import Dict, Any, Optional
+from pydantic import BaseModel
+from app.services.sensors.motion_sensor import MotionSensor
+from app.services.sensors.access_sensor import AccessSensor
+from app.services.sensors.temperature_sensor import TemperatureSensor
 from fastapi import APIRouter, HTTPException, Query
 
 from app.services.sensors import SENSOR_REGISTRY
@@ -13,30 +17,43 @@ async def list_sensors() -> Dict[str, Any]:
         "count": len(SENSOR_REGISTRY)
     }
 
-@router.post("/{sensor_type}")
-async def receive_sensor_event(
-    sensor_type: str,
-    event: Dict[str, Any],
-    wait: Optional[bool] = Query(False, description="Si True, espera al resultado del procesamiento")) -> Dict[str, Any]:    
-    sensor = SENSOR_REGISTRY.get(sensor_type)
-    if sensor is None:
-        raise HTTPException(status_code=404, detail=f"Sensor '{sensor_type}' no registrado")
+class MotionEvent(BaseModel):
+    movement: bool
+    zone: str
+    authorized: bool | None = None
+    timestamp: str | None = None
 
-    if wait:
-        result = await sensor.process_event(event)
-        return {"status": "processed", "result": result}
+class AccessEvent(BaseModel):
+    badge_id: str | None = None
+    door: str = "unknown"
+    unauthorized_access: bool | None = None
+    timestamp: str | None = None
 
-    asyncio.create_task(sensor.process_event(event))
-    return {"status": "accepted", "detail": "Evento encolado para procesamiento"}
+class TemperatureEvent(BaseModel):
+    temperature: Optional[float] = None
+    unit: str = "C"
+    sensor_id: str = "unknown"
+    timestamp: Optional[str] = None
 
 @router.post("/motion")
-async def receive_motion(event: Dict[str, Any], wait: Optional[bool] = Query(False)):
-    return await receive_sensor_event("motion", event, wait)
-
-@router.post("/temperature")
-async def receive_temperature(event: Dict[str, Any], wait: Optional[bool] = Query(False)):
-    return await receive_sensor_event("temperature", event, wait)
+async def simulate_motion_event(event: MotionEvent):
+    sensor = MotionSensor()
+    result = await sensor.process_event(event.dict())
+    return result
 
 @router.post("/access")
-async def receive_access(event: Dict[str, Any], wait: Optional[bool] = Query(False)):
-    return await receive_sensor_event("access", event, wait)
+async def simulate_access_event(event: AccessEvent):
+    sensor = AccessSensor(authorized_ids=["ID001", "ID002"])
+    result = await sensor.process_event(event.dict())
+    return result
+
+@router.post("/temperature")
+async def simulate_temperature_event(
+    event: TemperatureEvent,
+    wait: Optional[bool] = Query(False, description="Esperar medio segundo para simular retardo del sensor")):
+        if wait:
+            await asyncio.sleep(0.5)
+
+        sensor = TemperatureSensor(low_threshold=0.0, high_threshold=35.0)
+        result = await sensor.process_event(event.dict())
+        return result

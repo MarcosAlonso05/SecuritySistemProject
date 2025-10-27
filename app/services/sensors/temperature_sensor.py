@@ -6,6 +6,10 @@ from app.services.monitoring.metrics import EVENT_COUNTER, EVENT_LATENCY
 
 class TemperatureSensor:
 
+    def __init__(self, low_threshold: float = 0.0, high_threshold: float = 35.0):
+        self.low_threshold = low_threshold
+        self.high_threshold = high_threshold
+    
     async def process_event(self, data: Dict[str, Any]) -> Dict[str, Any]:
         
         start_time = time.time()
@@ -16,6 +20,9 @@ class TemperatureSensor:
         unit = data.get("unit", "C")
         sensor_id = data.get("sensor_id", "unknown")
         ts = data.get("timestamp") or datetime.utcnow().isoformat()
+        
+        EVENT_COUNTER.labels(sensor_type="temperature").inc()
+        EVENT_LATENCY.labels(sensor_type="temperature").observe(time.time() - start_time)
 
         if temp is None:
             return {"alert": False, "message": "Temperatura no proporcionada", "metadata": {"sensor_id": sensor_id}}
@@ -54,8 +61,5 @@ class TemperatureSensor:
                 "message": f"Temperatura alta cercana al umbral: {temp_c:.1f}°C (sensor {sensor_id})",
                 "metadata": {"temperature_c": temp_c, "sensor_id": sensor_id, "timestamp": ts}
             }
-            
-        EVENT_COUNTER.labels(sensor_type="temperature").inc()
-        EVENT_LATENCY.labels(sensor_type="temperature").observe(time.time() - start_time)
 
         return {"alert": False, "message": "Temperatura normal", "metadata": {"temperature_c": temp_c, "sensor_id": sensor_id}}

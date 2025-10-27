@@ -16,6 +16,9 @@ class MotionSensor:
         zone = data.get("zone", "unknown")
         authorized = data.get("authorized")
         ts = data.get("timestamp") or datetime.utcnow().isoformat()
+        
+        EVENT_COUNTER.labels(sensor_type="motion").inc()
+        EVENT_LATENCY.labels(sensor_type="motion").observe(time.time() - start_time)
 
         if not movement:
             return {"alert": False, "message": "No hay movimiento", "metadata": {"zone": zone, "timestamp": ts}}
@@ -27,9 +30,6 @@ class MotionSensor:
                 "message": f"Movimiento no autorizado en zona {zone}",
                 "metadata": {"timestamp": ts, "zone": zone}
             }
-            
-        EVENT_COUNTER.labels(sensor_type="motion").inc()
-        EVENT_LATENCY.labels(sensor_type="motion").observe(time.time() - start_time)
 
         return {
             "alert": True,

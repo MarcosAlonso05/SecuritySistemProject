@@ -7,12 +7,10 @@ SECRET_KEY = "SECRETKEY1234"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
-    to_encode = data.copy()
+def create_access_token(username: str, expires_delta: Optional[timedelta] = None) -> str:
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    to_encode = {"sub": username, "exp": expire}
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def decode_access_token(token: str) -> Dict[str, Any]:
     try:

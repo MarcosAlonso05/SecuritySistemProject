@@ -5,6 +5,9 @@ from datetime import datetime
 from app.services.monitoring.metrics import EVENT_COUNTER, EVENT_LATENCY
 
 class AccessSensor:
+    
+    def __init__(self, authorized_ids: Iterable[str] = None):
+        self.authorized_ids = set(authorized_ids or [])
 
     async def process_event(self, data: Dict[str, Any]) -> Dict[str, Any]:
         
