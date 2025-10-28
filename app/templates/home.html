@@ -2,8 +2,7 @@
 <p>Rol: {{ role }}</p>
 
 {% if role == "admin" %}
-<ul>
-    <li><a href="/sensor">Simulación de sensores</a></li>
+<ul><li><a href="/docs">Docs</a></li>
     <li><a href="/dashboard">Dashboard</a></li>
     <li><a href="/metrics">Métricas</a></li>
 </ul>
@@ -14,6 +13,6 @@
 </ul>
 {% else %}
 <ul>
-    <li><a href="/dashboard">Dashboard</a></li>
+    <li><a href="/metrics">Métricas</a></li>
 </ul>
 {% endif %}

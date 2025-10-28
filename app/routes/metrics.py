@@ -1,0 +1,65 @@
+from fastapi import APIRouter, Request
+from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
+from app.routes.auth import SESSIONS
+from prometheus_client import REGISTRY
+
+router = APIRouter()
+templates = Jinja2Templates(directory="app/templates")
+
+
+@router.get("/metrics")
+def show_metrics(request: Request):
+    token = request.cookies.get("session_token")
+    if not token or token not in SESSIONS:
+        return RedirectResponse("/login")
+
+    # Obtenemos el usuario (cualquier rol puede ver)
+    user = SESSIONS[token]
+
+    # Ejemplo: extraer estadísticas de los sensores desde Prometheus
+    stats = {}
+    for metric in REGISTRY.collect():
+        if metric.name == "events_processed_total":
+            for sample in metric.samples:
+                sensor = sample.labels.get("sensor_type", "unknown")
+                stats.setdefault(sensor, {"count": 0, "latencies": []})
+                stats[sensor]["count"] += int(sample.value)
+        elif metric.name == "event_processing_latency_seconds":
+            for sample in metric.samples:
+                sensor = sample.labels.get("sensor_type", "unknown")
+                stats.setdefault(sensor, {"count": 0, "latencies": []})
+                if sample.name.endswith("_sum"):
+                    stats[sensor]["latencies"].append(float(sample.value))
+
+    # Calcular estadísticas simples
+    computed = {}
+    for s, st in stats.items():
+        latencies = st["latencies"]
+        if not latencies:
+            computed[s] = {
+                "count": st["count"],
+                "avg_latency": 0,
+                "median_latency": 0,
+                "max_latency": 0
+            }
+            continue
+
+        latencies.sort()
+        count = len(latencies)
+        avg_latency = sum(latencies) / count
+        median_latency = latencies[count // 2]
+        max_latency = max(latencies)
+
+        computed[s] = {
+            "count": st["count"],
+            "avg_latency": avg_latency,
+            "median_latency": median_latency,
+            "max_latency": max_latency
+        }
+
+    return templates.TemplateResponse("metrics.html", {
+        "request": request,
+        "user": user,
+        "stats": computed
+    })
