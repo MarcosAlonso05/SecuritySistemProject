@@ -7,16 +7,10 @@ templates = Jinja2Templates(directory="app/templates")
 
 SESSIONS = {}
 
-# Base de usuarios inicial
 USERS = {
-    "admin": {"password": "1234", "role": "admin"},
-    "operator": {"password": "1234", "role": "operator"},
-    "viewer": {"password": "1234", "role": "viewer"},
+    "admin": {"password": "1234", "role": "admin"}
 }
 
-# -------------------------
-# LOGIN
-# -------------------------
 @router.get("/")
 def root():
     return RedirectResponse("/login")
@@ -45,10 +39,6 @@ def logout(request: Request):
     response.delete_cookie("session_token")
     return response
 
-
-# -------------------------
-# REGISTER
-# -------------------------
 @router.get("/register")
 def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})

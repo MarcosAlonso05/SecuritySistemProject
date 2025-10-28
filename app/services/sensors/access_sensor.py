@@ -3,6 +3,7 @@ import time
 from typing import Dict, Any, Iterable
 from datetime import datetime
 from app.services.monitoring.metrics import EVENT_COUNTER, EVENT_LATENCY
+from app.services.store import add_event
 
 class AccessSensor:
     
@@ -10,9 +11,7 @@ class AccessSensor:
         self.authorized_ids = set(authorized_ids or [])
 
     async def process_event(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        
         start_time = time.time()
-        
         await asyncio.sleep(0.5)
 
         badge = data.get("badge_id")
@@ -21,34 +20,46 @@ class AccessSensor:
         door = data.get("door", "unknown")
 
         if explicit_unauth is True:
-            return {
+            result = {
                 "alert": True,
                 "severity": "high",
                 "message": f"Intento de acceso no autorizado detectado en puerta {door}",
                 "metadata": {"badge_id": badge, "door": door, "timestamp": ts}
             }
+            latency = time.time() - start_time
+            add_event("access", result, latency)
+            return result
 
         if badge is None:
-            return {
+            result = {
                 "alert": True,
                 "severity": "high",
                 "message": "Evento de acceso sin badge_id",
                 "metadata": {"door": door, "timestamp": ts}
             }
+            latency = time.time() - start_time
+            add_event("access", result, latency)
+            return result
 
         if badge not in self.authorized_ids:
-            return {
+            result = {
                 "alert": True,
                 "severity": "high",
                 "message": f"Badge desconocido o no autorizado: {badge} en puerta {door}",
                 "metadata": {"badge_id": badge, "door": door, "timestamp": ts}
             }
-            
-        EVENT_COUNTER.labels(sensor_type="access").inc()
-        EVENT_LATENCY.labels(sensor_type="access").observe(time.time() - start_time)
+            latency = time.time() - start_time
+            add_event("access", result, latency)
+            return result
 
-        return {
+        EVENT_COUNTER.labels(sensor_type="access").inc()
+        latency = time.time() - start_time
+        EVENT_LATENCY.labels(sensor_type="access").observe(latency)
+
+        result = {
             "alert": False,
             "message": "Acceso autorizado",
             "metadata": {"badge_id": badge, "door": door, "timestamp": ts}
         }
+        add_event("access", result, latency)
+        return result

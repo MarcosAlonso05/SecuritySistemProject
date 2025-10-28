@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Métricas</title>
+</head>
+<body>
+    <h1>Métricas de sensores</h1>
+    <table border="1">
+    <tr><th>Sensor</th><th>Eventos totales</th><th>Avg latency (s)</th><th>Median (s)</th><th>Max (s)</th></tr>
+    {% for s, st in stats.items() %}
+        <tr>
+            <td>{{ s }}</td>
+            <td>{{ st.count }}</td>
+            <td>{{ "%.3f"|format(st.avg_latency) }}</td>
+            <td>{{ "%.3f"|format(st.median_latency) }}</td>
+            <td>{{ "%.3f"|format(st.max_latency) }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+
+    <p>Endpoint de Prometheus: <a href="/monitoring/metrics">/monitoring/metrics</a></p>
+    <p><a href="/home">Volver</a></p>
+</body>
+</html>

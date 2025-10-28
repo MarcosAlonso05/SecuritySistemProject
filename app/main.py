@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routes import auth, home, sensors
+from app.routes import auth, home, sensors, dashboard
 
 app = FastAPI(title="Security Monitoring System")
 
@@ -18,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Rutas activas
 app.include_router(auth.router)
 app.include_router(home.router)
 app.include_router(sensors.router)
+app.include_router(dashboard.router)

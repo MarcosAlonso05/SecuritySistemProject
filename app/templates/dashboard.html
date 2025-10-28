@@ -1,14 +1,42 @@
-<h2>Últimos eventos</h2>
-<table border="1">
-    <tr><th>Sensor</th><th>Mensaje</th><th>Alerta</th><th>Severidad</th></tr>
-    {% for type, events in last_events.items() %}
-    {% for e in events %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Dashboard - Operator</title>
+</head>
+<body>
+    <h1>Dashboard - {{ user.username }} ({{ user.role }})</h1>
+
+    <h2>Estadísticas rápidas</h2>
+    <table border="1">
+    <tr><th>Sensor</th><th>Eventos procesados</th><th>Avg Latency (s)</th><th>Samples</th></tr>
+    {% for s, st in stats.items() %}
         <tr>
-            <td>{{ type }}</td>
-            <td>{{ e.message }}</td>
-            <td>{{ e.alert }}</td>
-            <td>{{ e.get("severity", "-") }}</td>
+            <td>{{ s }}</td>
+            <td>{{ st.count }}</td>
+            <td>{{ "%.3f"|format(st.avg_latency) }}</td>
+            <td>{{ st.samples }}</td>
         </tr>
     {% endfor %}
+    </table>
+
+    <h2>Últimos eventos / alertas</h2>
+    {% for sensor, events_list in events.items() %}
+    <h3>{{ sensor|capitalize }}</h3>
+    <table border="1" style="margin-bottom:20px;">
+        <tr><th>Timestamp</th><th>Mensaje</th><th>Alerta</th><th>Severidad</th><th>Metadata</th></tr>
+        {% for e in events_list %}
+        <tr>
+            <td>{{ e.metadata.timestamp if e.metadata and e.metadata.timestamp else "-" }}</td>
+            <td>{{ e.message }}</td>
+            <td>{{ e.alert }}</td>
+            <td>{{ e.severity if e.severity else "-" }}</td>
+            <td><pre>{{ e.metadata }}</pre></td>
+        </tr>
+        {% endfor %}
+    </table>
     {% endfor %}
-</table>
+
+    <p><a href="/home">Volver</a></p>
+</body>
+</html>

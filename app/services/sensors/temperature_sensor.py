@@ -3,6 +3,7 @@ import time
 from typing import Dict, Any
 from datetime import datetime
 from app.services.monitoring.metrics import EVENT_COUNTER, EVENT_LATENCY
+from app.services.store import add_event
 
 class TemperatureSensor:
 
@@ -11,55 +12,73 @@ class TemperatureSensor:
         self.high_threshold = high_threshold
     
     async def process_event(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        
         start_time = time.time()
-        
         await asyncio.sleep(0.5)
 
         temp = data.get("temperature")
         unit = data.get("unit", "C")
         sensor_id = data.get("sensor_id", "unknown")
         ts = data.get("timestamp") or datetime.utcnow().isoformat()
-        
-        EVENT_COUNTER.labels(sensor_type="temperature").inc()
-        EVENT_LATENCY.labels(sensor_type="temperature").observe(time.time() - start_time)
 
-        if temp is None:
-            return {"alert": False, "message": "Temperatura no proporcionada", "metadata": {"sensor_id": sensor_id}}
+        EVENT_COUNTER.labels(sensor_type="temperature").inc()
 
         try:
+            if temp is None:
+                result = {
+                    "alert": False,
+                    "message": "Temperatura no proporcionada",
+                    "metadata": {"sensor_id": sensor_id}
+                }
+                latency = time.time() - start_time
+                add_event("temperature", result, latency)
+                return result
+
             temp_val = float(temp)
         except (ValueError, TypeError):
-            return {"alert": False, "message": "Valor de temperatura inválido", "metadata": {"sensor_id": sensor_id}}
+            result = {
+                "alert": False,
+                "message": "Valor de temperatura inválido",
+                "metadata": {"sensor_id": sensor_id}
+            }
+            latency = time.time() - start_time
+            add_event("temperature", result, latency)
+            return result
 
         if unit.upper() == "F":
-            temp_c = (temp_val - 32) * 5.0/9.0
+            temp_c = (temp_val - 32) * 5.0 / 9.0
         else:
             temp_c = temp_val
 
         if temp_c >= self.high_threshold:
-            return {
+            result = {
                 "alert": True,
                 "severity": "high",
                 "message": f"Temperatura extremadamente alta: {temp_c:.1f}°C (sensor {sensor_id})",
                 "metadata": {"temperature_c": temp_c, "sensor_id": sensor_id, "timestamp": ts}
             }
-
-        if temp_c <= self.low_threshold:
-            return {
+        elif temp_c <= self.low_threshold:
+            result = {
                 "alert": True,
                 "severity": "high",
                 "message": f"Temperatura extremadamente baja: {temp_c:.1f}°C (sensor {sensor_id})",
                 "metadata": {"temperature_c": temp_c, "sensor_id": sensor_id, "timestamp": ts}
             }
-
-        warning_margin = 5.0
-        if temp_c >= (self.high_threshold - warning_margin):
-            return {
+        elif temp_c >= (self.high_threshold - 5.0):
+            result = {
                 "alert": True,
                 "severity": "medium",
                 "message": f"Temperatura alta cercana al umbral: {temp_c:.1f}°C (sensor {sensor_id})",
                 "metadata": {"temperature_c": temp_c, "sensor_id": sensor_id, "timestamp": ts}
             }
+        else:
+            result = {
+                "alert": False,
+                "message": "Temperatura normal",
+                "metadata": {"temperature_c": temp_c, "sensor_id": sensor_id}
+            }
 
-        return {"alert": False, "message": "Temperatura normal", "metadata": {"temperature_c": temp_c, "sensor_id": sensor_id}}
+        latency = time.time() - start_time
+        EVENT_LATENCY.labels(sensor_type="temperature").observe(latency)
+        add_event("temperature", result, latency)
+
+        return result
