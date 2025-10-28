@@ -1,25 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="utf-8">
     <title>Métricas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Métricas de sensores</h1>
-    <table border="1">
-    <tr><th>Sensor</th><th>Eventos totales</th><th>Avg latency (s)</th><th>Median (s)</th><th>Max (s)</th></tr>
-    {% for s, st in stats.items() %}
-        <tr>
-            <td>{{ s }}</td>
-            <td>{{ st.count }}</td>
-            <td>{{ "%.3f"|format(st.avg_latency) }}</td>
-            <td>{{ "%.3f"|format(st.median_latency) }}</td>
-            <td>{{ "%.3f"|format(st.max_latency) }}</td>
-        </tr>
-    {% endfor %}
-    </table>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+    
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Métricas de sensores</h1>
+        <table class="w-full border-collapse border border-gray-700">
+            <tr class="bg-gray-800">
+                <th class="border border-gray-700 p-2">Sensor</th>
+                <th class="border border-gray-700 p-2">Eventos totales</th>
+                <th class="border border-gray-700 p-2">Avg Latency (s)</th>
+                <th class="border border-gray-700 p-2">Median (s)</th>
+                <th class="border border-gray-700 p-2">Max (s)</th>
+            </tr>
+            {% for s, st in stats.items() %}
+            <tr class="hover:bg-gray-800">
+                <td class="border border-gray-700 p-2">{{ s }}</td>
+                <td class="border border-gray-700 p-2">{{ st.count }}</td>
+                <td class="border border-gray-700 p-2">{{ "%.3f"|format(st.avg_latency) }}</td>
+                <td class="border border-gray-700 p-2">{{ "%.3f"|format(st.median_latency) }}</td>
+                <td class="border border-gray-700 p-2">{{ "%.3f"|format(st.max_latency) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
 
-    <p>Endpoint de Prometheus: <a href="/monitoring/metrics">/monitoring/metrics</a></p>
-    <p><a href="/home">Volver</a></p>
+        <p class="text-gray-400 mt-6">Endpoint de Prometheus: 
+            <a href="/monitoring/metrics" class="text-indigo-400 hover:text-indigo-300">/monitoring/metrics</a>
+        </p>
+
+        <a href="/home" class="inline-block mt-6 bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-semibold">Volver</a>
+    </div>
+
 </body>
 </html>

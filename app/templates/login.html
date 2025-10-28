@@ -1,7 +1,33 @@
-<form method="post" action="/login">
-    <input name="username" placeholder="Usuario" required>
-    <input name="password" type="password" placeholder="Contraseña" required>
-    <button type="submit">Login</button>
-    {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
-    <a href="/register">Registrar</a>
-</form>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+
+    <div class="bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-md">
+        <h1 class="text-3xl font-bold text-center mb-6">Inicio de sesión</h1>
+
+        <form method="post" action="/login" class="space-y-4">
+            <input name="username" placeholder="Usuario" required class="w-full p-3 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input name="password" type="password" placeholder="Contraseña" required class="w-full p-3 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+            {% if error %}
+            <p class="text-red-400 text-center">{{ error }}</p>
+            {% endif %}
+
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 font-bold py-3 px-4 rounded-lg transition-colors duration-200">
+                Entrar
+            </button>
+
+            <p class="text-center text-gray-400 mt-4">
+                ¿No tienes cuenta? <a href="/register" class="text-indigo-400 hover:text-indigo-300">Regístrate aquí</a>
+            </p>
+        </form>
+    </div>
+
+</body>
+</html>

@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
-from app.routes import auth, home, sensors, dashboard, metrics
+from app.routes import auth, home, sensors, dashboard, metrics, simulate
 from app.routes.auth import SESSIONS
 
 app = FastAPI(title="Security Monitoring System", docs_url=None, redoc_url=None)
@@ -25,6 +25,7 @@ app.include_router(home.router)
 app.include_router(sensors.router)
 app.include_router(dashboard.router)
 app.include_router(metrics.router)
+app.include_router(simulate.router)
 
 @app.get("/docs", response_class=HTMLResponse)
 async def custom_docs(request: Request):

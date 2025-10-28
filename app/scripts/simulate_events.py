@@ -3,14 +3,10 @@ import httpx
 import random
 from datetime import datetime
 
-# URL base de tu servidor FastAPI (asegúrate de que esté funcionando)
 BASE_URL = "http://127.0.0.1:8000"
 
-# --- Payloads de Simulación ---
-# Hemos añadido una clave "name" para que el menú sea más descriptivo
 
 events_to_send = [
-    # --- Eventos de Acceso ---
     {
         "name": "Acceso: Autorizado (ID001)",
         "url": "/sensor/access",
@@ -32,7 +28,6 @@ events_to_send = [
         "payload": {"unauthorized_access": True, "door": "Ventana Oficina"}
     },
     
-    # --- Eventos de Movimiento ---
     {
         "name": "Movimiento: Alerta (No Autorizado)",
         "url": "/sensor/motion",
@@ -49,7 +44,6 @@ events_to_send = [
         "payload": {"movement": False, "zone": "Pasillo 1"}
     },
 
-    # --- Eventos de Temperatura ---
     {
         "name": "Temp: Alerta (MUY ALTA)",
         "url": "/sensor/temperature",
@@ -73,19 +67,15 @@ events_to_send = [
 ]
 
 async def send_request(client: httpx.AsyncClient, event_data: dict):
-    """
-    Envía una única petición POST al endpoint especificado.
-    """
     url = f"{BASE_URL}{event_data['url']}"
     payload = event_data['payload']
     name = event_data['name']
     
     try:
-        # Añadimos un pequeño retardo aleatorio
         await asyncio.sleep(random.uniform(0.1, 0.3))
         
         response = await client.post(url, json=payload)
-        response.raise_for_status() # Lanza un error si el status no es 2xx
+        response.raise_for_status()
         
         print(f"  > ÉXITO [{name}]: {response.json().get('message')}")
         return response.json()
@@ -98,7 +88,6 @@ async def send_request(client: httpx.AsyncClient, event_data: dict):
         print(f"  > ERROR Inesperado [{name}]: {e}")
 
 def show_menu():
-    """Imprime el menú de opciones en la consola."""
     print("\n--- Simulador Interactivo de Eventos ---")
     print("Elige un evento para lanzar:")
     for i, event in enumerate(events_to_send):
@@ -108,17 +97,12 @@ def show_menu():
     print("  q. Salir")
 
 async def run_all_events(client: httpx.AsyncClient):
-    """
-    Lanza todas las peticiones definidas en 'events_to_send' concurrentemente.
-    """
     print(f"\nLanzando {len(events_to_send)} eventos concurrentemente...")
     
-    # Creamos una lista de "tareas" (una por cada evento)
     tasks = []
     for event_data in events_to_send:
         tasks.append(send_request(client, event_data))
     
-    # Ejecutamos todas las tareas concurrentemente
     results = await asyncio.gather(*tasks)
     
     alerts = [r for r in results if r and r.get('alert')]
@@ -127,10 +111,7 @@ async def run_all_events(client: httpx.AsyncClient):
     print(f"Total de alertas generadas: {len(alerts)}")
 
 async def main():
-    """
-    Bucle principal interactivo que muestra el menú y espera la entrada del usuario.
-    """
-    # Usamos un AsyncClient para gestionar las conexiones de forma eficiente
+    
     async with httpx.AsyncClient(timeout=10.0) as client:
         
         while True:
@@ -146,10 +127,8 @@ async def main():
                 continue
 
             try:
-                # Intentamos convertir la opción en un índice (restando 1)
                 event_index = int(choice) - 1
                 
-                # Verificamos si el índice es válido
                 if 0 <= event_index < len(events_to_send):
                     event_to_run = events_to_send[event_index]
                     print(f"\nLanzando evento: {event_to_run['name']}...")
@@ -163,11 +142,7 @@ async def main():
                 print(f"Error inesperado en el bucle principal: {e}")
 
 if __name__ == "__main__":
-    # Si te da error de "RuntimeError: Event loop is closed" en Windows,
-    # descomenta la siguiente línea:
-    # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     
     print(f"Conectando al servidor en {BASE_URL}...")
     print("Asegúrate de que tu servidor FastAPI (uvicorn) esté funcionando.")
     asyncio.run(main())
-

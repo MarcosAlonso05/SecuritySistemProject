@@ -1,42 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>Dashboard - Operator</title>
+    <title>Dashboard - {{ user.username }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Dashboard - {{ user.username }} ({{ user.role }})</h1>
+<body class="bg-gray-900 text-white min-h-screen p-6">
 
-    <h2>Estadísticas rápidas</h2>
-    <table border="1">
-    <tr><th>Sensor</th><th>Eventos procesados</th><th>Avg Latency (s)</th><th>Samples</th></tr>
-    {% for s, st in stats.items() %}
-        <tr>
-            <td>{{ s }}</td>
-            <td>{{ st.count }}</td>
-            <td>{{ "%.3f"|format(st.avg_latency) }}</td>
-            <td>{{ st.samples }}</td>
-        </tr>
-    {% endfor %}
-    </table>
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-4">Dashboard - {{ user.username }} ({{ user.role }})</h1>
 
-    <h2>Últimos eventos / alertas</h2>
-    {% for sensor, events_list in events.items() %}
-    <h3>{{ sensor|capitalize }}</h3>
-    <table border="1" style="margin-bottom:20px;">
-        <tr><th>Timestamp</th><th>Mensaje</th><th>Alerta</th><th>Severidad</th><th>Metadata</th></tr>
-        {% for e in events_list %}
-        <tr>
-            <td>{{ e.metadata.timestamp if e.metadata and e.metadata.timestamp else "-" }}</td>
-            <td>{{ e.message }}</td>
-            <td>{{ e.alert }}</td>
-            <td>{{ e.severity if e.severity else "-" }}</td>
-            <td><pre>{{ e.metadata }}</pre></td>
-        </tr>
+        <h2 class="text-xl font-semibold mb-2">Estadísticas rápidas</h2>
+        <table class="w-full border-collapse border border-gray-700 mb-8">
+            <tr class="bg-gray-800">
+                <th class="border border-gray-700 p-2">Sensor</th>
+                <th class="border border-gray-700 p-2">Eventos procesados</th>
+                <th class="border border-gray-700 p-2">Avg Latency (s)</th>
+                <th class="border border-gray-700 p-2">Samples</th>
+            </tr>
+            {% for s, st in stats.items() %}
+            <tr class="hover:bg-gray-800">
+                <td class="border border-gray-700 p-2">{{ s }}</td>
+                <td class="border border-gray-700 p-2">{{ st.count }}</td>
+                <td class="border border-gray-700 p-2">{{ "%.3f"|format(st.avg_latency) }}</td>
+                <td class="border border-gray-700 p-2">{{ st.samples }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2 class="text-xl font-semibold mb-2">Últimos eventos / alertas</h2>
+        {% for sensor, events_list in events.items() %}
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold text-indigo-400 mb-2">{{ sensor|capitalize }}</h3>
+            <table class="w-full border-collapse border border-gray-700">
+                <tr class="bg-gray-800">
+                    <th class="border border-gray-700 p-2">Timestamp</th>
+                    <th class="border border-gray-700 p-2">Mensaje</th>
+                    <th class="border border-gray-700 p-2">Alerta</th>
+                    <th class="border border-gray-700 p-2">Severidad</th>
+                    <th class="border border-gray-700 p-2">Metadata</th>
+                </tr>
+                {% for e in events_list %}
+                <tr class="hover:bg-gray-800">
+                    <td class="border border-gray-700 p-2">{{ e.metadata.timestamp if e.metadata and e.metadata.timestamp else "-" }}</td>
+                    <td class="border border-gray-700 p-2">{{ e.message }}</td>
+                    <td class="border border-gray-700 p-2">{{ e.alert }}</td>
+                    <td class="border border-gray-700 p-2">{{ e.severity if e.severity else "-" }}</td>
+                    <td class="border border-gray-700 p-2"><pre>{{ e.metadata }}</pre></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
         {% endfor %}
-    </table>
-    {% endfor %}
 
-    <p><a href="/home">Volver</a></p>
+        <a href="/home" class="inline-block mt-6 bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-semibold">Volver</a>
+    </div>
+
 </body>
 </html>
