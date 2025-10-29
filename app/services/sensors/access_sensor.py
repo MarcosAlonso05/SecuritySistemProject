@@ -4,6 +4,7 @@ from typing import Dict, Any, Iterable
 from datetime import datetime
 from app.services.monitoring.metrics import EVENT_COUNTER, EVENT_LATENCY
 from app.services.store import add_event
+from app.services import alerting
 
 class AccessSensor:
     
@@ -18,6 +19,8 @@ class AccessSensor:
         explicit_unauth = data.get("unauthorized_access")
         ts = data.get("timestamp") or datetime.utcnow().isoformat()
         door = data.get("door", "unknown")
+        
+        result = None
 
         if explicit_unauth is True:
             result = {
@@ -30,7 +33,7 @@ class AccessSensor:
             add_event("access", result, latency)
             return result
 
-        if badge is None:
+        elif badge is None:
             result = {
                 "alert": True,
                 "severity": "high",
@@ -41,7 +44,7 @@ class AccessSensor:
             add_event("access", result, latency)
             return result
 
-        if badge not in self.authorized_ids:
+        elif badge not in self.authorized_ids:
             result = {
                 "alert": True,
                 "severity": "high",
@@ -52,14 +55,22 @@ class AccessSensor:
             add_event("access", result, latency)
             return result
 
-        EVENT_COUNTER.labels(sensor_type="access").inc()
-        latency = time.time() - start_time
-        EVENT_LATENCY.labels(sensor_type="access").observe(latency)
+        if result is None:
+            EVENT_COUNTER.labels(sensor_type="access").inc()
+            latency = time.time() - start_time
+            EVENT_LATENCY.labels(sensor_type="access").observe(latency)
 
-        result = {
-            "alert": False,
-            "message": "Acceso autorizado",
-            "metadata": {"badge_id": badge, "door": door, "timestamp": ts}
-        }
+            result = {
+                "alert": False,
+                "message": "Acceso autorizado",
+                "metadata": {"badge_id": badge, "door": door, "timestamp": ts}
+            }
+            add_event("access", result, latency)
+            return result
+
+        latency = time.time() - start_time
         add_event("access", result, latency)
+        
+        await alerting.dispatch_alert(result) 
+        
         return result

@@ -4,6 +4,7 @@ from typing import Dict, Any
 from datetime import datetime
 from app.services.monitoring.metrics import EVENT_COUNTER, EVENT_LATENCY
 from app.services.store import add_event
+from app.services import alerting
 
 class TemperatureSensor:
 
@@ -21,6 +22,8 @@ class TemperatureSensor:
         ts = data.get("timestamp") or datetime.utcnow().isoformat()
 
         EVENT_COUNTER.labels(sensor_type="temperature").inc()
+        
+        result = None
 
         try:
             if temp is None:
@@ -32,6 +35,9 @@ class TemperatureSensor:
                 latency = time.time() - start_time
                 add_event("temperature", result, latency)
                 return result
+            
+            if temp is not None:
+                temp_val = float(temp)
 
             temp_val = float(temp)
         except (ValueError, TypeError):
@@ -43,6 +49,12 @@ class TemperatureSensor:
             latency = time.time() - start_time
             add_event("temperature", result, latency)
             return result
+        
+        if result and result.get("alert") == False:
+            latency = time.time() - start_time
+            add_event("temperature", result, latency)
+            return result
+
 
         if unit.upper() == "F":
             temp_c = (temp_val - 32) * 5.0 / 9.0
@@ -80,5 +92,7 @@ class TemperatureSensor:
         latency = time.time() - start_time
         EVENT_LATENCY.labels(sensor_type="temperature").observe(latency)
         add_event("temperature", result, latency)
+        
+        await alerting.dispatch_alert(result)
 
         return result

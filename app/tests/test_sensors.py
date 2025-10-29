@@ -12,7 +12,6 @@ except ImportError:
 client = TestClient(app)
 
 
-# --- Mock de Dependencias ---
 @pytest.fixture(autouse=True)
 def mock_external_services(mocker):
     """
@@ -21,29 +20,19 @@ def mock_external_services(mocker):
     Esto evita que los tests intenten conectarse a servicios reales.
     """
     
-    # Mock de los servicios para AccessSensor
     mocker.patch("app.services.sensors.access_sensor.add_event", return_value=None)
     mocker.patch("app.services.sensors.access_sensor.EVENT_COUNTER", MagicMock())
     mocker.patch("app.services.sensors.access_sensor.EVENT_LATENCY", MagicMock())
     
-    # Mock de los servicios para MotionSensor
     mocker.patch("app.services.sensors.motion_sensor.add_event", return_value=None)
     mocker.patch("app.services.sensors.motion_sensor.EVENT_COUNTER", MagicMock())
     mocker.patch("app.services.sensors.motion_sensor.EVENT_LATENCY", MagicMock())
 
-    # Mock de los servicios para TemperatureSensor
     mocker.patch("app.services.sensors.temperature_sensor.add_event", return_value=None)
     mocker.patch("app.services.sensors.temperature_sensor.EVENT_COUNTER", MagicMock())
     mocker.patch("app.services.sensors.temperature_sensor.EVENT_LATENCY", MagicMock())
 
-
-# --- Tests para Access Sensor ---
-
 def test_access_sensor_authorized():
-    """
-    Prueba un evento de acceso autorizado.
-    El badge "ID001" está hardcodeado como autorizado en tu router.
-    """
     payload = {
         "badge_id": "ID001",
         "door": "Entrada Principal"
@@ -57,9 +46,6 @@ def test_access_sensor_authorized():
     assert data["metadata"]["badge_id"] == "ID001"
 
 def test_access_sensor_unauthorized():
-    """
-    Prueba un evento de acceso no autorizado con un badge desconocido.
-    """
     payload = {
         "badge_id": "ID999",
         "door": "Sala de Servidores"
@@ -73,13 +59,7 @@ def test_access_sensor_unauthorized():
     assert "Badge desconocido o no autorizado" in data["message"]
     assert data["metadata"]["badge_id"] == "ID999"
 
-# --- Tests para Motion Sensor ---
-
 def test_motion_sensor_authorized_movement():
-    """
-    Prueba un evento de movimiento detectado que está autorizado.
-    Debería generar una alerta de severidad "medium".
-    """
     payload = {
         "movement": True,
         "zone": "Lobby",
@@ -94,10 +74,6 @@ def test_motion_sensor_authorized_movement():
     assert "Movimiento detectado" in data["message"]
 
 def test_motion_sensor_unauthorized_movement():
-    """
-    Prueba un evento de movimiento detectado que NO está autorizado.
-    Debería generar una alerta de severidad "high".
-    """
     payload = {
         "movement": True,
         "zone": "Área Restringida",
@@ -111,13 +87,8 @@ def test_motion_sensor_unauthorized_movement():
     assert data["severity"] == "high"
     assert "Movimiento no autorizado" in data["message"]
 
-# --- Tests para Temperature Sensor ---
 
 def test_temperature_sensor_normal():
-    """
-    Prueba un evento de temperatura normal.
-    El rango normal está hardcodeado entre 0 y 35 en tu router.
-    """
     payload = {
         "temperature": 24.5,
         "unit": "C",
@@ -132,9 +103,6 @@ def test_temperature_sensor_normal():
     assert data["metadata"]["temperature_c"] == 24.5
 
 def test_temperature_sensor_high_alert():
-    """
-    Prueba un evento de temperatura alta que dispara una alerta.
-    """
     payload = {
         "temperature": 40.0,
         "unit": "C",

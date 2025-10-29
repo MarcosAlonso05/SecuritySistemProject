@@ -25,6 +25,36 @@
             <a href="/metrics" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-semibold">Métricas</a>
             {% endif %}
         </div>
+
+        {% if role in ["admin", "operator"] %}
+            {% if alert_events %}
+            <div class="bg-gray-800 rounded-lg shadow-lg p-6 text-left">
+                <h2 class="text-xl font-semibold mb-4 text-red-400">Últimas Alertas Críticas</h2>
+                
+                <div class="max-h-64 overflow-y-auto space-y-4">
+                    {% for event in alert_events %}
+                        <div class="p-3 bg-gray-700 rounded-md border-l-4 border-red-500">
+                            <p class="font-semibold text-white">{{ event.message }}</p>
+                            <p class="text-sm text-gray-300">
+                                {% set sensor_type = event.metadata.get("door", event.metadata.get("zone", event.metadata.get("sensor_id", "Desconocido"))) %}
+                                Sensor: {{ sensor_type }}
+                                {% if event.metadata.timestamp %}
+                                    | {{ event.metadata.timestamp.split('T')[0] }} {{ event.metadata.timestamp.split('T')[1].split('.')[0] }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+            {% else %}
+            <div class="bg-gray-800 rounded-lg shadow-lg p-6 text-left">
+                <h2 class="text-xl font-semibold mb-4 text-green-400">Estado del Sistema</h2>
+                <p class="text-gray-300">No hay alertas críticas recientes. ¡Todo en orden!</p>
+            </div>
+            {% endif %}
+        {% endif %}
+
     </div>
 
 </body>

@@ -3,7 +3,8 @@ import asyncio
 from datetime import datetime
 from typing import Dict, Any
 from app.services.monitoring.metrics import EVENT_COUNTER, EVENT_LATENCY
-from app.services.store import add_event  # <-- nuevo import
+from app.services.store import add_event
+from app.services import alerting
 
 class MotionSensor:
 
@@ -15,6 +16,8 @@ class MotionSensor:
         zone = data.get("zone", "unknown")
         authorized = data.get("authorized")
         ts = data.get("timestamp") or datetime.utcnow().isoformat()
+        
+        result = None
 
         if not movement:
             result = {"alert": False, "message": "No hay movimiento", "metadata": {"zone": zone, "timestamp": ts}}
@@ -33,15 +36,23 @@ class MotionSensor:
             add_event("motion", result, latency)
             return result
 
-        EVENT_COUNTER.labels(sensor_type="motion").inc()
-        latency = time.time() - start_time
-        EVENT_LATENCY.labels(sensor_type="motion").observe(latency)
+        if result is None:
+            EVENT_COUNTER.labels(sensor_type="motion").inc()
+            latency = time.time() - start_time
+            EVENT_LATENCY.labels(sensor_type="motion").observe(latency)
 
-        result = {
-            "alert": True,
-            "severity": "medium",
-            "message": f"Movimiento detectado en zona {zone}",
-            "metadata": {"timestamp": ts, "zone": zone}
-        }
-        add_event("motion", result, latency)
+            result = {
+                "alert": True,
+                "severity": "medium",
+                "message": f"Movimiento detectado en zona {zone}",
+                "metadata": {"timestamp": ts, "zone": zone}
+            }
+            add_event("motion", result, latency)
+            return result
+        
+        latency = time.time() - start_time
+        add_event("motion", result, latency) 
+        
+        await alerting.dispatch_alert(result)
+        
         return result

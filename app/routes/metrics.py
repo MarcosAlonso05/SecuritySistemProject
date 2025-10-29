@@ -14,10 +14,8 @@ def show_metrics(request: Request):
     if not token or token not in SESSIONS:
         return RedirectResponse("/login")
 
-    # Obtenemos el usuario (cualquier rol puede ver)
     user = SESSIONS[token]
 
-    # Ejemplo: extraer estadísticas de los sensores desde Prometheus
     stats = {}
     for metric in REGISTRY.collect():
         if metric.name == "events_processed_total":
@@ -32,7 +30,6 @@ def show_metrics(request: Request):
                 if sample.name.endswith("_sum"):
                     stats[sensor]["latencies"].append(float(sample.value))
 
-    # Calcular estadísticas simples
     computed = {}
     for s, st in stats.items():
         latencies = st["latencies"]

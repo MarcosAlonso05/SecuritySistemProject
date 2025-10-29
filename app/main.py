@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -6,8 +7,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from app.routes import auth, home, sensors, dashboard, metrics, simulate
 from app.routes.auth import SESSIONS
+from app.services import alerting
 
 app = FastAPI(title="Security Monitoring System", docs_url=None, redoc_url=None)
+
+@app.on_event("startup")
+async def startup_event():
+    print("Iniciando la aplicación y el consumidor de alertas...")
+    asyncio.create_task(alerting.alert_consumer_task())
 
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
