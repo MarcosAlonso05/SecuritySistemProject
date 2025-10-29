@@ -3,6 +3,8 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.routes.auth import SESSIONS
 from prometheus_client import REGISTRY
+# --- 1. Importar el get_all_stats del store ---
+from app.services.store import get_all_stats
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -30,11 +32,11 @@ def show_metrics(request: Request):
                 if sample.name.endswith("_sum"):
                     stats[sensor]["latencies"].append(float(sample.value))
 
-    computed = {}
+    computed_prometheus = {} # Renombrado para claridad
     for s, st in stats.items():
         latencies = st["latencies"]
         if not latencies:
-            computed[s] = {
+            computed_prometheus[s] = {
                 "count": st["count"],
                 "avg_latency": 0,
                 "median_latency": 0,
@@ -43,20 +45,38 @@ def show_metrics(request: Request):
             continue
 
         latencies.sort()
-        count = len(latencies)
-        avg_latency = sum(latencies) / count
-        median_latency = latencies[count // 2]
-        max_latency = max(latencies)
+        # Corregir cálculo de 'count' para latencias de Prometheus
+        # El 'count' del histograma es más preciso que len(latencies)
+        total_sum = sum(latencies)
+        total_count = st["count"] # Usar el 'count' de events_processed_total
+        
+        avg_latency = total_sum / total_count if total_count > 0 else 0
+        
+        # Nota: La mediana y el máximo basados en '_sum' no son precisos.
+        # Esto es una limitación de cómo se parsean los datos de Prometheus aquí.
+        # Para simplificar, mantendremos tu lógica original, 
+        # pero idealmente Prometheus se consultaría con PromQL.
+        
+        # Re-aplicando tu lógica original para mantener consistencia
+        simple_count = len(latencies)
+        avg_latency_original = sum(latencies) / simple_count if simple_count > 0 else 0
+        median_latency = latencies[simple_count // 2] if simple_count > 0 else 0
+        max_latency = max(latencies) if simple_count > 0 else 0
 
-        computed[s] = {
-            "count": st["count"],
-            "avg_latency": avg_latency,
+
+        computed_prometheus[s] = {
+            "count": st["count"], # Usamos el 'count' de events_processed_total
+            "avg_latency": avg_latency_original, # Mantenemos tu cálculo original
             "median_latency": median_latency,
             "max_latency": max_latency
         }
 
+    # --- 2. Obtener las estadísticas del Dashboard (store.py) ---
+    dashboard_stats = get_all_stats()
+
     return templates.TemplateResponse("metrics.html", {
         "request": request,
         "user": user,
-        "stats": computed
+        "stats_prometheus": computed_prometheus, # Datos de Prometheus
+        "stats_dashboard": dashboard_stats    # <-- 3. Pasar los nuevos datos
     })

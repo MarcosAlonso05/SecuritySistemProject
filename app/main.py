@@ -13,7 +13,6 @@ app = FastAPI(title="Security Monitoring System", docs_url=None, redoc_url=None)
 
 @app.on_event("startup")
 async def startup_event():
-    print("Iniciando la aplicación y el consumidor de alertas...")
     asyncio.create_task(alerting.alert_consumer_task())
 
 templates = Jinja2Templates(directory="app/templates")

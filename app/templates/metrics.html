@@ -13,24 +13,24 @@
             <tr class="bg-gray-800">
                 <th class="border border-gray-700 p-2">Sensor</th>
                 <th class="border border-gray-700 p-2">Eventos totales</th>
-                <th class="border border-gray-700 p-2">Avg Latency (s)</th>
+                <th class="border border-gray-700 p-2">Avg Latency (Prometheus)</th>
+                <th class="border border-gray-700 p-2">Avg Latency (Dashboard)</th>
                 <th class="border border-gray-700 p-2">Median (s)</th>
                 <th class="border border-gray-700 p-2">Max (s)</th>
             </tr>
-            {% for s, st in stats.items() %}
+            {% for s, st in stats_prometheus.items() %}
             <tr class="hover:bg-gray-800">
                 <td class="border border-gray-700 p-2">{{ s }}</td>
                 <td class="border border-gray-700 p-2">{{ st.count }}</td>
                 <td class="border border-gray-700 p-2">{{ "%.3f"|format(st.avg_latency) }}</td>
+                <td class="border border-gray-700 p-2 text-yellow-300">
+                    {{ "%.3f"|format(stats_dashboard.get(s, {}).get('avg_latency', 0)) }}
+                </td>
                 <td class="border border-gray-700 p-2">{{ "%.3f"|format(st.median_latency) }}</td>
                 <td class="border border-gray-700 p-2">{{ "%.3f"|format(st.max_latency) }}</td>
             </tr>
             {% endfor %}
         </table>
-
-        <p class="text-gray-400 mt-6">Endpoint de Prometheus: 
-            <a href="/monitoring/metrics" class="text-indigo-400 hover:text-indigo-300">/monitoring/metrics</a>
-        </p>
 
         <a href="/home" class="inline-block mt-6 bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-semibold">Volver</a>
     </div>

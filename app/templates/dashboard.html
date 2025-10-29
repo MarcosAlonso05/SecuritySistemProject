@@ -16,14 +16,12 @@
                 <th class="border border-gray-700 p-2">Sensor</th>
                 <th class="border border-gray-700 p-2">Eventos procesados</th>
                 <th class="border border-gray-700 p-2">Avg Latency (s)</th>
-                <th class="border border-gray-700 p-2">Samples</th>
             </tr>
             {% for s, st in stats.items() %}
             <tr class="hover:bg-gray-800">
                 <td class="border border-gray-700 p-2">{{ s }}</td>
                 <td class="border border-gray-700 p-2">{{ st.count }}</td>
                 <td class="border border-gray-700 p-2">{{ "%.3f"|format(st.avg_latency) }}</td>
-                <td class="border border-gray-700 p-2">{{ st.samples }}</td>
             </tr>
             {% endfor %}
         </table>

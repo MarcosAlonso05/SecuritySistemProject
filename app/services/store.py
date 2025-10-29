@@ -13,7 +13,7 @@ STATS: Dict[str, Dict[str, Any]] = defaultdict(lambda: {
 })
 
 def add_event(sensor_type: str, event: Dict[str, Any], latency: float | None = None) -> None:
-    LAST_EVENTS[sensor_type].appendleft(event)  # más reciente primero
+    LAST_EVENTS[sensor_type].appendleft(event)
     STATS[sensor_type]["count"] += 1
     if latency is not None:
         STATS[sensor_type]["latencies"].append(latency)

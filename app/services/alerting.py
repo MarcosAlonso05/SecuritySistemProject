@@ -40,7 +40,6 @@ def send_alert_email_sync(message: str, metadata: Dict[str, Any]):
         raise
 
 async def alert_consumer_task():
-    print("[AlertService] Iniciando consumidor de alertas en segundo plano...")
     while True:
         try:
             alert = await alert_queue.get()

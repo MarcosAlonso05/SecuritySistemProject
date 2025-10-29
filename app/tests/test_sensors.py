@@ -14,11 +14,6 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def mock_external_services(mocker):
-    """
-    Fixture de Pytest que automáticamente "mockea" (simula) las dependencias
-    externas (métricas y store) antes de cada test.
-    Esto evita que los tests intenten conectarse a servicios reales.
-    """
     
     mocker.patch("app.services.sensors.access_sensor.add_event", return_value=None)
     mocker.patch("app.services.sensors.access_sensor.EVENT_COUNTER", MagicMock())
