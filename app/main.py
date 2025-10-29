@@ -33,6 +33,7 @@ app.include_router(sensors.router)
 app.include_router(dashboard.router)
 app.include_router(metrics.router)
 app.include_router(simulate.router)
+app.include_router(simulate.router)
 
 @app.get("/docs", response_class=HTMLResponse)
 async def custom_docs(request: Request):
